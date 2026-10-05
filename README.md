@@ -1,0 +1,2 @@
+# nHash
+A cryptocurrency
