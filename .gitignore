@@ -1,0 +1,33 @@
+# ── Private keys & chain state — NEVER commit ──
+*.wallet
+*.dat
+*.seed
+poolpass
+mining_enabled
+
+# ── Build outputs ──
+build/
+release/
+*.obj
+*.exe
+*.pdb
+*.res
+*.o
+*.out
+*.lib
+*.exp
+
+# ── Distribution bundles ──
+*.zip
+*.tar.gz
+*.tgz
+
+# ── Logs & scratch ──
+*.log
+data/
+
+# ── OS / editor ──
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

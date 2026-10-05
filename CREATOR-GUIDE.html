@@ -1,0 +1,614 @@
+<title>nHash Creator Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#f4f6f8; --surface:#ffffff; --surface-2:#eceff3;
+    --ink:#161a21; --muted:#5a626f; --faint:#8a92a0;
+    --border:#e2e6ec; --border-strong:#cfd4dd;
+    --accent:#a95c17; --accent-ink:#8f4d12; --accent-weak:rgba(169,92,23,.10);
+    --ok:#2f7d4f; --warn:#9a6a12; --danger:#b1341d;
+    --term-bg:#111620; --term-fg:#ccd3de; --term-muted:#7a8494; --term-prompt:#e0954a;
+    --shadow:0 1px 2px rgba(16,20,28,.05),0 8px 24px -12px rgba(16,20,28,.12);
+    --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1117; --surface:#161b24; --surface-2:#1b212c;
+      --ink:#e6e9ef; --muted:#9aa3b2; --faint:#6f7887;
+      --border:#252c38; --border-strong:#323a48;
+      --accent:#d98a3d; --accent-ink:#e5a061; --accent-weak:rgba(217,138,61,.14);
+      --ok:#4faf7c; --warn:#d0a24a; --danger:#e0644c;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1117; --surface:#161b24; --surface-2:#1b212c;
+    --ink:#e6e9ef; --muted:#9aa3b2; --faint:#6f7887;
+    --border:#252c38; --border-strong:#323a48;
+    --accent:#d98a3d; --accent-ink:#e5a061; --accent-weak:rgba(217,138,61,.14);
+    --ok:#4faf7c; --warn:#d0a24a; --danger:#e0644c;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    -webkit-font-smoothing:antialiased;font-size:16px}
+  a{color:var(--accent);text-underline-offset:2px}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
+  .layout{display:grid;grid-template-columns:1fr;gap:0}
+  @media(min-width:960px){.layout{grid-template-columns:248px minmax(0,1fr);gap:48px;align-items:start}}
+
+  /* ---- header ---- */
+  header.hero{border-bottom:1px solid var(--border);background:
+    radial-gradient(120% 140% at 88% -20%,var(--accent-weak),transparent 60%),var(--surface)}
+  .eyebrow{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--accent-ink)}
+  h1{font-size:clamp(28px,4.4vw,44px);line-height:1.06;font-weight:700;letter-spacing:-.02em;
+    margin:.5rem 0 .35rem;text-wrap:balance}
+  .lede{color:var(--muted);font-size:clamp(15px,1.6vw,18px);max-width:62ch;margin:0}
+  .hero-inner{padding:clamp(28px,6vw,56px) 0 clamp(22px,4vw,34px)}
+
+  /* ---- spec strip ---- */
+  .specs{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);
+    border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:26px}
+  @media(min-width:620px){.specs{grid-template-columns:repeat(4,1fr)}}
+  .spec{background:var(--surface);padding:14px 16px}
+  .spec .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .spec .v{font-size:18px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+  .spec .v small{font-weight:500;color:var(--muted);font-size:12px}
+
+  /* ---- toc ---- */
+  nav.toc{position:sticky;top:0;max-height:100vh;overflow-y:auto;padding:28px 0;display:none}
+  @media(min-width:960px){nav.toc{display:block}}
+  nav.toc ol{list-style:none;margin:0;padding:0;counter-reset:s}
+  nav.toc a{display:block;text-decoration:none;color:var(--muted);font-size:13.5px;
+    padding:5px 0 5px 30px;position:relative;border-left:2px solid transparent;line-height:1.35}
+  nav.toc a::before{counter-increment:s;content:counter(s,decimal-leading-zero);
+    position:absolute;left:8px;font-family:var(--mono);font-size:11px;color:var(--faint)}
+  nav.toc a:hover{color:var(--ink)}
+  nav.toc a.active{color:var(--accent-ink);border-left-color:var(--accent);font-weight:500}
+  .toc-title{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--faint);padding:0 0 6px 8px}
+
+  /* ---- main ---- */
+  main{padding:8px 0 80px;min-width:0}
+  section{padding:34px 0;border-top:1px solid var(--border)}
+  section:first-of-type{border-top:0}
+  section>h2{font-size:23px;font-weight:600;letter-spacing:-.01em;margin:0 0 4px;
+    display:flex;align-items:baseline;gap:12px;scroll-margin-top:20px;text-wrap:balance}
+  section>h2 .num{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:500}
+  section>.sub{color:var(--muted);margin:0 0 18px;max-width:64ch}
+  h3{font-size:16px;font-weight:600;margin:26px 0 8px}
+  p{max-width:66ch}
+  ul,ol.steps{max-width:66ch;padding-left:20px}
+  li{margin:5px 0}
+  strong{font-weight:600}
+  code{font-family:var(--mono);font-size:.88em;background:var(--surface-2);
+    padding:.12em .38em;border-radius:5px;border:1px solid var(--border)}
+
+  /* ---- terminal code blocks ---- */
+  pre{background:var(--term-bg);color:var(--term-fg);border-radius:10px;padding:16px 18px;
+    overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.62;margin:14px 0;
+    border:1px solid rgba(255,255,255,.06)}
+  pre code{background:none;border:0;padding:0;font-size:inherit;color:inherit}
+  pre .c{color:var(--term-muted)}          /* comment */
+  pre .p{color:var(--term-prompt)}          /* prompt / accent */
+  pre b{color:#fff;font-weight:600}
+
+  /* ---- tables ---- */
+  .tbl{width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px;
+    border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .tbl-scroll{overflow-x:auto}
+  .tbl th,.tbl td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+  .tbl thead th{background:var(--surface-2);font-size:11.5px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--muted);font-weight:600}
+  .tbl tr:last-child td{border-bottom:0}
+  .tbl td code{white-space:nowrap}
+  .tbl .mono{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+
+  /* ---- callouts ---- */
+  .note{border:1px solid var(--border);border-left:3px solid var(--accent);background:var(--surface);
+    border-radius:8px;padding:13px 16px;margin:16px 0;box-shadow:var(--shadow)}
+  .note.warn{border-left-color:var(--warn)}
+  .note.danger{border-left-color:var(--danger)}
+  .note.ok{border-left-color:var(--ok)}
+  .note .lab{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    font-weight:600;display:block;margin-bottom:3px}
+  .note.warn .lab{color:var(--warn)} .note.danger .lab{color:var(--danger)}
+  .note.ok .lab{color:var(--ok)} .note .lab{color:var(--accent-ink)}
+  .note p{margin:.2rem 0;max-width:none}
+
+  .pill{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;
+    padding:2px 8px;border-radius:20px;letter-spacing:.03em;vertical-align:middle}
+  .pill.done{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
+  .pill.todo{color:var(--warn);background:color-mix(in srgb,var(--warn) 16%,transparent)}
+  .pill.real{color:var(--danger);background:color-mix(in srgb,var(--danger) 14%,transparent)}
+  footer{border-top:1px solid var(--border);color:var(--muted);font-size:13.5px;
+    padding:26px 0 60px;max-width:66ch}
+  .kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--border-strong);
+    border-bottom-width:2px;border-radius:5px;padding:1px 6px;background:var(--surface)}
+</style>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div class="eyebrow">nHash · creator manual</div>
+    <h1>The complete creator guide</h1>
+    <p class="lede">Everything you need to build, launch, mine, use and open up to others your own
+      CPU cryptocurrency — from a single command to a real network.</p>
+    <div class="specs" aria-label="Coin parameters">
+      <div class="spec"><div class="k">PoW algorithm</div><div class="v">nHash <small>4&nbsp;MB</small></div></div>
+      <div class="spec"><div class="k">Block time</div><div class="v">5 <small>min</small></div></div>
+      <div class="spec"><div class="k">Total supply</div><div class="v">21<small>&nbsp;000&nbsp;000</small></div></div>
+      <div class="spec"><div class="k">Reward</div><div class="v">50 <small>/ halving 210k</small></div></div>
+      <div class="spec"><div class="k">Difficulty</div><div class="v">LWMA <small>integer</small></div></div>
+      <div class="spec"><div class="k">Maturity</div><div class="v">100 <small>blocks</small></div></div>
+      <div class="spec"><div class="k">P2P port</div><div class="v">9333 <small>pool 9350</small></div></div>
+      <div class="spec"><div class="k">Per-core gap</div><div class="v">~1.3× <small>vs 5-6× RandomX</small></div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Contents">
+    <div class="toc-title">Contents</div>
+    <ol id="tocList">
+      <li><a href="#what">What nHash is</a></li>
+      <li><a href="#components">System components</a></li>
+      <li><a href="#params">Coin parameters</a></li>
+      <li><a href="#build">Build from source</a></li>
+      <li><a href="#run">Run as creator (host)</a></li>
+      <li><a href="#miners">What miners run</a></li>
+      <li><a href="#wallet">Wallet &amp; keys</a></li>
+      <li><a href="#transfer">Sending coins (Transfer)</a></li>
+      <li><a href="#pool">Pool &amp; external miner</a></li>
+      <li><a href="#fairness">CPU fairness: the stress tests</a></li>
+      <li><a href="#rpc">RPC reference</a></li>
+      <li><a href="#commands">Command reference</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#public">Path to public</a></li>
+      <li><a href="#value">The truth about value</a></li>
+      <li><a href="#trouble">Troubleshooting</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section id="what">
+      <h2><span class="num">01</span> What nHash is</h2>
+      <p class="sub">A complete cryptocurrency written from scratch in C++: mining algorithm, blockchain,
+        transactions, signatures, P2P network and pool — original, portable code, tested on real
+        hardware (from a 2011 i5-2500K to a modern i7).</p>
+      <p>nHash is transparent (like Bitcoin, no Monero-style privacy) and designed to be
+        <strong>fair for CPU mining</strong>. v2 of the algorithm fills its scratchpad with
+        <strong>AES-NI</strong> (a single hardware instruction present on every x86 CPU since ~2010,
+        equally fast on old and new) and mixes with a <strong>dual-lane, latency-bound</strong> loop of
+        unpredictable branches — so it gains nothing from AVX2 or wide execution units. Measured on real
+        hardware (i5-2500K vs i7-14650HX): a 2011 core stays within ~1.3× of a 2024 core, versus ~5-6× on
+        RandomX — and under full multi-core load the old CPU is actually <em>faster per core</em>. Section
+        10 has the numbers.</p>
+      <div class="note">
+        <span class="lab">Honest status</span>
+        <p>At the <strong>code</strong> level you have a complete engine, more advanced than most coins
+          at launch. For a truly public network you still need real-world pieces (hosted seed nodes, an
+          explorer, an audit) and, above all, <strong>real demand</strong> — see sections 14 and 15.</p>
+      </div>
+    </section>
+
+    <section id="components">
+      <h2><span class="num">02</span> System components</h2>
+      <p class="sub">Seven executables in the <code>release</code> folder. They read/write files from the
+        directory you run them in (<code>chain.dat</code>, <code>mempool.dat</code>,
+        <code>peers.dat</code>, <code>&lt;name&gt;.wallet</code>).</p>
+      <div class="tbl-scroll"><table class="tbl">
+        <thead><tr><th>Binary</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">nhash</td><td><strong>All-in-one miner</strong> (what most people run). Name + password → creates the wallet, auto-detects the CPU, syncs a background node, mines to the pool with every core, live dashboard.</td></tr>
+          <tr><td class="mono">nhash-wallet</td><td>Wallet: interactive menu (Dashboard + Transfer), plus CLI <code>dashboard</code>, <code>transfer</code>, <code>address</code>, <code>balance</code>, <code>send</code>, <code>mine</code>, <code>info</code>.</td></tr>
+          <tr><td class="mono">nhashd</td><td>Full node: P2P network, peer discovery, sync, reorg, validation, optional internal mining, RPC. Run this on the host.</td></tr>
+          <tr><td class="mono">nhash-pool</td><td>Pool: many miners combine power, shares counted, proportional on-chain payouts. Runs on the host.</td></tr>
+          <tr><td class="mono">nhash-miner</td><td>Standalone miner: connects to a node or pool over RPC and mines multi-threaded (advanced).</td></tr>
+          <tr><td class="mono">nhash-pay</td><td>Payment gateway: accept nHash for a product (single-address, unique-amount matching).</td></tr>
+          <tr><td class="mono">nhash-web</td><td>Block explorer (MoneroOcean-style): live network + pool stats, difficulty/block-time charts, supply &amp; halving progress, clickable per-block detail (with transactions), and block / address lookup. Serves on the LAN.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note"><span class="lab">Two roles</span>
+        <p><strong>Creator/host:</strong> runs <code>nhashd</code> (seed) + <code>nhash-pool</code>, always on.
+          <strong>Everyone else:</strong> just double-clicks <code>nhash.exe</code> — it finds the pool and
+          the seed baked into the binary, no configuration.</p></div>
+    </section>
+
+    <section id="params">
+      <h2><span class="num">03</span> Coin parameters (mainnet)</h2>
+      <p class="sub">Defined in <code>src/params.cpp</code> (<code>select_mainnet</code>). Changing them
+        creates a different network — every participant must use the exact same binary.</p>
+      <div class="tbl-scroll"><table class="tbl">
+        <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Target block time</td><td class="mono">300 s (5 min)</td><td>difficulty adjusts to keep it</td></tr>
+          <tr><td>Total supply</td><td class="mono">21 000 000</td><td>1 coin = 100 000 000 base units</td></tr>
+          <tr><td>Block reward</td><td class="mono">50</td><td>halves every 210 000 blocks</td></tr>
+          <tr><td>Coinbase maturity</td><td class="mono">100</td><td>mined coins are spendable after 100 blocks</td></tr>
+          <tr><td>Difficulty</td><td class="mono">LWMA-1</td><td>linearly-weighted average, deterministic integer math</td></tr>
+          <tr><td>PoW scratchpad</td><td class="mono">4 MB</td><td>fits in an i5-2500K's L3 (6 MB)</td></tr>
+          <tr><td>P2P port</td><td class="mono">9333</td><td>RPC is on P2P port + 1, localhost only</td></tr>
+          <tr><td>Pool port</td><td class="mono">9350</td><td>miners connect here in pool mode (default)</td></tr>
+          <tr><td>Network magic</td><td class="mono">0x43483031</td><td>prevents connecting to the wrong network</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note warn">
+        <span class="lab">Genesis</span>
+        <p>Genesis is deterministic: any <code>init</code> with the same binary produces the exact same
+          start block, so everyone is on one network. If you change parameters, <strong>delete
+          <code>chain.dat</code></strong> everywhere and restart from scratch.</p>
+      </div>
+    </section>
+
+    <section id="build">
+      <h2><span class="num">04</span> Build from source</h2>
+      <p class="sub">The code is portable. Use MSVC on Windows, g++ on Linux. Both produce functionally
+        identical binaries (identical hashes — essential for consensus).</p>
+      <h3>Windows (MSVC)</h3>
+      <pre><code><span class="c">:: from the project folder — build_node.bat calls vcvars64 + cl</span>
+build_node.bat
+<span class="c">:: output: build\nhash.exe, nhashd.exe, nhash-wallet.exe,</span>
+<span class="c">::         nhash-miner.exe, nhash-pool.exe, nhash-pay.exe</span></code></pre>
+      <h3>Linux (g++)</h3>
+      <pre><code>CORE=<span class="p">"</span>src/corehash.cpp src/block.cpp src/blockchain.cpp src/utxo.cpp \
+      src/ed25519.cpp src/wallet.cpp src/storage.cpp src/params.cpp<span class="p">"</span>
+<span class="c"># -maes is required: the v2 scratchpad fill uses AES-NI</span>
+g++ -O2 -std=c++17 -maes -pthread -o nhashd       $CORE src/net.cpp src/daemon.cpp src/daemon_main.cpp
+g++ -O2 -std=c++17 -maes -pthread -o nhash-wallet $CORE src/net.cpp src/cli.cpp
+g++ -O2 -std=c++17 -maes -pthread -o nhash-miner  src/corehash.cpp src/block.cpp src/net.cpp src/miner.cpp src/miner_main.cpp
+g++ -O2 -std=c++17 -maes -pthread -o nhash-pool   src/corehash.cpp src/block.cpp src/net.cpp \
+      src/wallet.cpp src/ed25519.cpp src/params.cpp src/pool.cpp
+g++ -O2 -std=c++17 -maes -pthread -o nhash        $CORE src/net.cpp src/daemon.cpp src/miner.cpp src/coremine.cpp</code></pre>
+      <div class="note"><span class="lab">Verify</span>
+        <p>Crypto test suite: <code>ed25519_test</code> must print <code>ALL TESTS PASSED</code>
+          (official RFC 8032 vectors). PoW self-tests live in <code>avx2_attack</code>,
+          <code>avx512_attack</code> and <code>latency_test</code> — see section 10.</p></div>
+    </section>
+
+    <section id="run">
+      <h2><span class="num">05</span> Run as creator (host: node + pool)</h2>
+      <p class="sub">As creator you are the network anchor: an always-on seed node plus the pool that
+        everyone mines to. Both live in a working directory that holds the chain and the pool wallet.</p>
+      <ol class="steps">
+        <li>Pick a working directory (chain.dat, pool wallet, logs live here).</li>
+        <li>Create the pool wallet (it receives block rewards, then pays miners).</li>
+        <li>Start the seed node, then the pool pointing at the node's RPC. Leave both running.</li>
+      </ol>
+      <pre><code><span class="c">:: one-time: pool wallet (encrypted; password via COREHASH_PASS)</span>
+set COREHASH_PASS=<span class="p">your_long_password</span>
+nhash-wallet.exe newwallet poolwallet
+
+<span class="c">:: seed node — listens on 9333, RPC on 9334, no peers ('-')</span>
+nhashd.exe 9333 -
+
+<span class="c">:: pool — connects to the node RPC, listens for miners on 9350, share-shift 16</span>
+nhash-pool.exe 127.0.0.1:9334 poolwallet 9350 16</code></pre>
+      <p>The node prints <code>accepted block ...</code> as blocks arrive; the pool logs shares, found
+        blocks and payouts. On Linux run both with <code>setsid nohup ... &amp;</code> so they survive
+        logout (a systemd service is better for reboot-persistence).</p>
+      <div class="note"><span class="lab">Daemon arguments</span>
+        <p><code>nhashd &lt;port&gt; &lt;peers|-&gt; [mine_wallet] [threads]</code> — use <code>-</code> for
+          peers if you are the anchor; otherwise a comma-separated list (<code>ip1:9333,ip2:9333</code>).
+          Omit the wallet to run a non-mining node (the usual choice for a seed that hosts a pool).</p></div>
+    </section>
+
+    <section id="miners">
+      <h2><span class="num">06</span> What miners run (zero config)</h2>
+      <p class="sub">Everyone else just needs the <code>release</code> folder and a double-click. The
+        pool and seed addresses are baked into the binary.</p>
+      <ol class="steps">
+        <li>Double-click <strong><code>nhash.exe</code></strong>.</li>
+        <li>Pick a username and password (creates the encrypted wallet the first time).</li>
+        <li>It <strong>auto-calibrates the thread count</strong> for the highest hashrate on that exact
+          CPU (hybrid P+E cores and cache-limited chips aren't always fastest at 100% of threads), then
+          connects to the pool, syncs a background node, and mines — live dashboard.</li>
+      </ol>
+      <p>Earnings are split <strong>proportionally</strong> across all miners at each block (like Monero),
+        so everyone earns fractions continuously. The dashboard shows your hashrate, your earnings
+        (available + pending), height, difficulty and peers.</p>
+      <div class="note"><span class="lab">Override (optional)</span>
+        <p>A <code>network.txt</code> next to the exe overrides the default. First line:
+          <code>pool:host:port</code> (a different pool), <code>solo</code> (a full node that mines whole
+          blocks itself), or <code>solo:host:port</code>.</p></div>
+    </section>
+
+    <section id="wallet">
+      <h2><span class="num">07</span> Wallet &amp; keys</h2>
+      <p class="sub">Keys are Ed25519. The address is <code>blake2b(public_key)</code>, 64 hex chars. The
+        wallet can be encrypted with a password (PBKDF2 + ChaCha20 + HMAC).</p>
+      <p>Double-click <code>nhash-wallet.exe</code> for the interactive menu (Dashboard + Transfer), or
+        use it from the command line:</p>
+      <pre><code>nhash-wallet.exe dashboard creator   <span class="c"># live panel: balance + earnings</span>
+nhash-wallet.exe address   creator   <span class="c"># show address — does NOT ask for the password</span>
+nhash-wallet.exe balance   creator   <span class="c"># show balance — does NOT ask for the password</span></code></pre>
+      <p>The public key is stored in the clear, so <strong>address and balance</strong> are visible
+        without a password. Only <strong>spending and mining</strong> (which need the secret key) ask
+        for it. The dashboard is live when a node (<code>nhash.exe</code>) is running; otherwise it
+        reads the local chain.</p>
+      <div class="note danger"><span class="lab">Backup</span>
+        <p>The <code>&lt;name&gt;.wallet</code> file is your money. Whoever has it (and the password, if
+          encrypted) can spend your coins. Back it up offline.</p>
+        <p><strong>Seed phrase (recommended):</strong> run <code>nhash-wallet backup &lt;name&gt;</code>
+          to show a standard <strong>24-word BIP39 phrase</strong>. Write it on paper and keep it
+          offline — it is a full backup. Recover on any machine with
+          <code>nhash-wallet restore &lt;name&gt;</code> (it asks for the 24 words, verifies the
+          checksum so a typo is caught, and rebuilds the wallet). Anyone with the words can spend the
+          coins, so never type them into a website or store them online.</p></div>
+      <div class="note"><span class="lab">COREHASH_PASS</span>
+        <p>For unattended runs (daemon, pool, scripts) set the <code>COREHASH_PASS</code> environment
+          variable; otherwise the command asks for the password interactively, without echo.</p></div>
+    </section>
+
+    <section id="transfer">
+      <h2><span class="num">08</span> Sending coins (Transfer)</h2>
+      <p class="sub">Send to a hex address or to a local wallet name. The transaction is broadcast to the
+        network through your running node and confirms in the next block.</p>
+      <p>In the wallet menu choose <strong>[2] Transfer</strong> and fill in the fields (each has an
+        example): <strong>To</strong> (e.g. <code>ana</code>), <strong>Amount</strong> (e.g.
+        <code>12.5</code>), <strong>Memo</strong> (an optional note). Or from the CLI:</p>
+      <pre><code>nhash-wallet.exe transfer creator <span class="p">&lt;address_or_name&gt;</span> 12.5 <span class="p">"for GrgAI PRO"</span>
+<span class="c"># flat fee 0.001; change returns to you automatically</span>
+<span class="c"># nhash.exe must be running so the tx is broadcast</span></code></pre>
+      <div class="note"><span class="lab">Memo</span>
+        <p>The memo is a <strong>local note</strong>, saved in <code>transfers.log</code> next to your
+          wallet (your own record). Putting it on-chain would require a protocol change across all
+          nodes; the coin transfer itself is fully on-chain.</p></div>
+      <div class="note warn"><span class="lab">Maturity</span>
+        <p>Freshly mined coins become spendable only after <strong>100 blocks</strong>. Until then they
+          show in the balance as "pending" but cannot be sent (standard anti-reorg rule).</p></div>
+    </section>
+
+    <section id="pool">
+      <h2><span class="num">09</span> Pool &amp; external miner</h2>
+      <p class="sub">The pool lets small miners combine power and be paid proportionally to their
+        contribution (shares). In nHash this is the default path, so most people never touch these
+        commands directly — <code>nhash.exe</code> does it for them.</p>
+      <h3>Pool (on the host)</h3>
+      <pre><code>set COREHASH_PASS=<span class="p">pool_password</span>
+nhash-pool.exe <span class="p">127.0.0.1:9334</span> poolwallet <span class="p">9350</span> 16
+<span class="c"># args: &lt;node_host:rpcport&gt; &lt;pool_wallet&gt; &lt;pool_port&gt; [share_shift]</span></code></pre>
+      <h3>External miner (advanced)</h3>
+      <pre><code>nhash-miner.exe <span class="p">&lt;host:port&gt;</span> <span class="p">&lt;your_address_hex&gt;</span> <span class="p">&lt;threads&gt;</span>
+<span class="c"># point it at the pool (IP_pool:9350) or a node RPC (127.0.0.1:9334)</span></code></pre>
+      <p>The pool receives the coinbase, counts each miner's shares and distributes proportionally.
+        On-chain payouts happen automatically once a miner is owed a small threshold (~0.1 nHash) and the
+        pool's coinbase matures (100 blocks). The last argument is the <em>share shift</em> — how much
+        easier a share target is than the network target.</p>
+    </section>
+
+    <section id="fairness">
+      <h2><span class="num">10</span> CPU fairness: the stress tests</h2>
+      <p class="sub">The whole point of nHash is that an old CPU is not crushed by a new one. These are
+        the actual attacks and measurements we ran against the algorithm, with numbers, not just claims.</p>
+
+      <h3>Real cross-CPU fairness (measured on hardware)</h3>
+      <p>The headline metric. v2 built identically (bit-for-bit test vector) on both machines, benchmarked
+        single-thread and at full load:</p>
+      <div class="tbl-scroll"><table class="tbl">
+        <thead><tr><th></th><th>i5-2500K (2011)</th><th>i7-14650HX (2024)</th><th>ratio</th></tr></thead>
+        <tbody>
+          <tr><td>1 thread (per core)</td><td class="mono">126 H/s</td><td class="mono">~152–175 H/s</td><td class="mono">~1.3×</td></tr>
+          <tr><td>all cores (total)</td><td class="mono">152 H/s (4t)</td><td class="mono">539 H/s (24t)</td><td class="mono">3.5×</td></tr>
+          <tr><td>per core at full load</td><td class="mono">38.0 H/s</td><td class="mono">22.4 H/s</td><td class="mono">old wins</td></tr>
+        </tbody>
+      </table></div>
+      <p>Per core the 13-year gap is only ~1.3× (RandomX is ~5–6×). At full load the old CPU is actually
+        <strong>faster per core</strong>: the 4 MB-per-hash working set means many-core CPUs starve their
+        shared cache first (24 threads want 96 MB, the i7 has ~30 MB L3), so extra cores hit diminishing
+        returns. The i7 leads on the <em>total</em> only by having 6× the cores — which is fair (a much
+        bigger CPU should mine more). The 4 MB scratchpad is validated by this data: smaller would let
+        many-core CPUs pull further ahead, larger would slow the old CPU's single thread.</p>
+
+      <h3>Fill is no longer an attack surface (v1 → v2)</h3>
+      <p>v1 filled the scratchpad with ChaCha8, a compute-bound phase that was <strong>22%</strong> of a
+        hash and vectorizable — modern CPUs sped it up with AVX2. v2 fills with <strong>AES-NI</strong>,
+        one hardware instruction on every 2010+ CPU: now the fill is <strong>5.6%</strong> of a hash and
+        equally fast on old and new, so the AVX2 fill advantage is gone.</p>
+
+      <h3>AVX2 attack — <code>avx2_attack</code></h3>
+      <p>Processes 4 nonces at once, one per AVX2 lane (the realistic miner optimization; the i5-2500K
+        has only AVX1, so a big AVX2 win would be unfair). Output verified bit-identical to the reference
+        hasher. Result on a modern i7, single thread:</p>
+      <div class="tbl-scroll"><table class="tbl">
+        <thead><tr><th>Version</th><th>Hashrate</th><th>Speedup</th></tr></thead>
+        <tbody>
+          <tr><td>Scalar (reference)</td><td class="mono">~139 H/s</td><td class="mono">1.00×</td></tr>
+          <tr><td>AVX2 ×4</td><td class="mono">~86 H/s</td><td class="mono">0.62×</td></tr>
+        </tbody>
+      </table></div>
+      <p>AVX2 is <strong>much slower</strong>. Why: the dual-lane loop needs two gathers and two scalar
+        scatters per iteration (AVX2 has no scatter); each of the two data-dependent <code>switch</code>
+        lanes forces SIMD to compute all four branches and blend; 64-bit multiply is emulated; and 4
+        scratchpads = 16 MB thrash the cache.</p>
+
+      <h3>Latency-hiding — <code>latency_test</code></h3>
+      <p>The real GPU/ASIC question: they don't win with wider SIMD, they win by running many independent
+        hashes at once to hide memory latency. This runs K interleaved streams on one core. Because a v2
+        hash already issues two reads at once (dual-lane), a single stream already uses much of the
+        memory parallelism, leaving little for extra streams:</p>
+      <div class="tbl-scroll"><table class="tbl">
+        <thead><tr><th>K streams</th><th>H/s total</th><th>per stream</th><th>working set</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td class="mono">147.6</td><td class="mono">147.6</td><td>4 MB</td></tr>
+          <tr><td>2</td><td class="mono">164.6</td><td class="mono">82.3</td><td>8 MB</td></tr>
+          <tr><td>3</td><td class="mono">145.8</td><td class="mono">48.6</td><td>12 MB</td></tr>
+          <tr><td>4</td><td class="mono">141.3</td><td class="mono">35.3</td><td>16 MB</td></tr>
+          <tr><td>6</td><td class="mono">133.4</td><td class="mono">22.2</td><td>24 MB</td></tr>
+          <tr><td>8</td><td class="mono">123.7</td><td class="mono">15.5</td><td>32 MB</td></tr>
+        </tbody>
+      </table></div>
+      <p>Parallelism now helps only up to ~1.12× (K=2, down from v1's 1.23×) and drops below baseline by
+        K=3. The real defense is <strong>memory capacity (4 MB/hash) + random-access bandwidth</strong>,
+        not latency alone — which is exactly what makes it hostile to GPUs (thousands of threads × 4 MB ×
+        uncoalesced 8-byte reads).</p>
+
+      <h3>AVX-512 — <code>avx512_attack</code> (ready to run)</h3>
+      <p>The strongest CPU-SIMD attack: 8 nonces at once with AVX-512's native scatter, native 64-bit
+        multiply (AVX-512DQ) and native variable rotate — the exact weapons AVX2 lacked. It is written,
+        builds, and verifies bit-identical output; a CPUID guard makes it exit cleanly on machines without
+        AVX-512 (most consumer Intel chips, which fuse it off), so it is safe to run anywhere and runs the
+        real benchmark on Zen4/Zen5 or Xeon hardware. Prediction from the data: it also loses — 8 pads =
+        32 MB puts the working set deep in the thrash regime the latency test already mapped, and scatter
+        only speeds the writes, which were never the bottleneck.</p>
+
+      <div class="note ok"><span class="lab">Verdict (v2)</span>
+        <p>AVX2 ✗ (0.62×), AVX-512 built &amp; ready (expected ✗ — 32 MB working set), GPU ✗ (capacity +
+          bandwidth). The fairness claim holds under measurement and v2 is stronger than v1 on every axis.
+          It is not ASIC-<em>proof</em> (a chip with 4 MB SRAM per core is buildable), but no CPU coin is —
+          and formal cryptanalysis/audit is still the honest prerequisite before real financial stakes.</p></div>
+    </section>
+
+    <section id="rpc">
+      <h2><span class="num">11</span> RPC reference</h2>
+      <p class="sub">The node RPC listens on <code>127.0.0.1:&lt;P2P port + 1&gt;</code> (localhost only, for
+        security). Simple text protocol, used by the miner and pool.</p>
+      <div class="tbl-scroll"><table class="tbl">
+        <thead><tr><th>Command</th><th>Response</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">getwork &lt;addr&gt;</td><td class="mono">OK &lt;target&gt; &lt;block&gt;</td><td>block template with coinbase to address</td></tr>
+          <tr><td class="mono">submit &lt;block&gt;</td><td class="mono">OK &lt;height&gt;</td><td>submit a solved block</td></tr>
+          <tr><td class="mono">sendtx &lt;tx&gt;</td><td class="mono">OK &lt;txid&gt;</td><td>relay a transaction (transfers, pool payouts)</td></tr>
+          <tr><td class="mono">getutxos &lt;addr&gt;</td><td class="mono">OK &lt;tip&gt; &lt;n&gt; …</td><td>unspent outputs of an address (balance, dashboard)</td></tr>
+          <tr><td class="mono">info</td><td class="mono">OK &lt;height&gt; &lt;diff&gt;</td><td>chain state</td></tr>
+        </tbody>
+      </table></div>
+      <p>The pool adds one command miners can call on the pool port: <code>stats &lt;addr&gt;</code> →
+        <code>OK &lt;round_shares&gt; &lt;owed&gt; &lt;paid&gt;</code>, which powers the live "earnings" line.</p>
+    </section>
+
+    <section id="commands">
+      <h2><span class="num">12</span> Command reference</h2>
+      <div class="tbl-scroll"><table class="tbl">
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">nhash</td><td>double-click: name + password → mine to the pool (all-in-one)</td></tr>
+          <tr><td class="mono">nhash-wallet</td><td>double-click: interactive Dashboard + Transfer menu</td></tr>
+          <tr><td class="mono">nhash-wallet dashboard &lt;n&gt;</td><td>live panel: balance + earnings</td></tr>
+          <tr><td class="mono">nhash-wallet transfer &lt;from&gt; &lt;to&gt; &lt;amt&gt; [memo]</td><td>build, sign and broadcast a transfer</td></tr>
+          <tr><td class="mono">nhash-wallet address &lt;n&gt;</td><td>show the address</td></tr>
+          <tr><td class="mono">nhash-wallet balance &lt;n&gt;</td><td>show the balance</td></tr>
+          <tr><td class="mono">nhash-wallet newwallet &lt;n&gt;</td><td>create a wallet (asks for password)</td></tr>
+          <tr><td class="mono">nhash-wallet backup &lt;n&gt;</td><td>show the 24-word BIP39 seed phrase (offline backup)</td></tr>
+          <tr><td class="mono">nhash-wallet restore &lt;n&gt; [24 words]</td><td>recreate a wallet from its seed phrase</td></tr>
+          <tr><td class="mono">nhash-wallet init [force]</td><td>create a fresh chain (genesis)</td></tr>
+          <tr><td class="mono">nhashd &lt;port&gt; &lt;peers|-&gt; [wallet] [threads]</td><td>start the node (+ mining if a wallet is given)</td></tr>
+          <tr><td class="mono">nhash-pool &lt;node&gt; &lt;wallet&gt; &lt;port&gt; [shift]</td><td>start the pool</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="security">
+      <h2><span class="num">13</span> Security</h2>
+      <p class="sub">What is already protected and what should be hardened before a large public network.</p>
+      <div class="tbl-scroll"><table class="tbl">
+        <thead><tr><th>Area</th><th>State</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Signatures (Ed25519, RFC 8032)</td><td>validated on 2 platforms</td><td><span class="pill done">done</span></td></tr>
+          <tr><td>Encrypted wallet (password)</td><td>PBKDF2 + ChaCha20 + HMAC</td><td><span class="pill done">done</span></td></tr>
+          <tr><td>Wallet backup (seed phrase)</td><td>standard 24-word BIP39 (verified wordlist + SHA-256 checksum); backup/restore</td><td><span class="pill done">done</span></td></tr>
+          <tr><td>Network anti-DoS</td><td>peer bans, caps per connection/message/block/tx/mempool</td><td><span class="pill done">done</span></td></tr>
+          <tr><td>Deterministic difficulty</td><td>LWMA integer</td><td><span class="pill done">done</span></td></tr>
+          <tr><td>CPU-fairness (AVX2/GPU)</td><td>measured, resists (section 10)</td><td><span class="pill done">done</span></td></tr>
+          <tr><td>Crash-safe persistence</td><td>atomic write (temp+fsync+rename) + corruption-tolerant load</td><td><span class="pill done">done</span></td></tr>
+          <tr><td>Memory safety / UB</td><td>ASan+UBSan fuzzed; fixed a latent <code>rotl64</code> UB</td><td><span class="pill done">done</span></td></tr>
+          <tr><td>Thread safety</td><td>ThreadSanitizer: 0 races under mining+RPC+P2P</td><td><span class="pill done">done</span></td></tr>
+          <tr><td>Constant-time Ed25519</td><td>branchless <code>cmov</code> scalar mult + branchless reduction mod L; no secret-dependent branch/timing/cache; RFC 8032 vectors still bit-identical</td><td><span class="pill done">done</span></td></tr>
+          <tr><td>Per-peer rate-limiting</td><td>token-bucket message-frequency cap per peer (512 burst / 128 msg·s⁻¹) on control messages; BLOCK/TX exempt (self-throttling); floods are banned. Validated by a full live LAN resync</td><td><span class="pill done">done</span></td></tr>
+        </tbody>
+      </table></div>
+      <div class="note ok"><span class="lab">Status</span>
+        <p>Every item in this table is now <strong>done</strong>. The signing path is constant-time and
+          peers are frequency-limited, both verified (RFC 8032 vectors still bit-identical; a full live
+          LAN resync passes without a false flood-ban). The remaining prerequisite before real financial
+          stakes is an <strong>external cryptanalysis/audit</strong> — that is a human review, not code.
+          Keep keys offline and keep the RPC on localhost only (as it already is).</p></div>
+    </section>
+
+    <section id="public">
+      <h2><span class="num">14</span> Path to public</h2>
+      <p class="sub">From "friends with IPs" to "anyone downloads and joins automatically".</p>
+      <ol class="steps">
+        <li><strong>Hardcoded seed nodes</strong> — put your 24/7 node IPs in <code>g_params.seeds</code>
+          (<code>params.cpp</code>) and recompile. The binary finds the network on its own. (nHash
+          already ships with the host seed baked in.)</li>
+        <li><strong>A dedicated 24/7 machine</strong> with a stable IP (a cheap VPS) for the seed + pool.</li>
+        <li><strong>Reachability</strong> beyond the LAN: a private-IP host only works on the same network.
+          For remote friends without port forwarding, use a free tunnel (Cloudflare Tunnel, playit.gg)
+          or a small VPS as a public seed.</li>
+        <li><strong>Block explorer</strong> + <strong>installers</strong> for Windows/Linux/Mac.</li>
+        <li><strong>Public testnet</strong>, then an announced <strong>fair launch</strong> (public date/time
+          so everyone starts equal — no hidden premine).</li>
+        <li><strong>Security audit</strong> before any real financial stakes.</li>
+      </ol>
+      <div class="note"><span class="lab">Real cost</span>
+        <p>These are no longer code: a VPS ~€5/month, time for a testnet, an expert for an audit. The code
+          <em>enables</em> them; you operate them.</p></div>
+    </section>
+
+    <section id="value">
+      <h2><span class="num">15</span> The truth about value</h2>
+      <p class="sub">The part no serious person skips.</p>
+      <p>"mined − spent = profit" only becomes true <strong>after</strong> the coin has a price on a market.
+        And price doesn't come from code, it comes from <strong>real demand</strong>: a stranger has to
+        want to buy it. You cannot bootstrap value yourself — buying or mining your own coin is just moving
+        money from one pocket to another.</p>
+      <div class="note danger"><span class="lab">Beware</span>
+        <p>The scheme "pump the price with my own trades to attract buyers, then sell" = pump-and-dump /
+          rug pull. It is fraud, illegal, and steals from real people. A serious coin launches
+          transparently: public code, no hidden premine, a real community.</p></div>
+      <p>The right question is not "how do I raise the price" but <strong>"why would a stranger want to hold
+        this coin?"</strong>. A good answer (utility, community, fair distribution) is what turns a solid
+        technical experiment into a currency. For nHash, the first real utility is spending it on something
+        you actually offer — for example buying GrgAI PRO with it.</p>
+    </section>
+
+    <section id="trouble">
+      <h2><span class="num">16</span> Troubleshooting</h2>
+      <div class="tbl-scroll"><table class="tbl">
+        <thead><tr><th>Symptom</th><th>Cause &amp; fix</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">X BUILD FAILED</td><td>a process (node/miner/pool) still holds files in <code>build\</code> — stop them, then rebuild.</td></tr>
+          <tr><td>Nodes don't see each other</td><td>different genesis or magic → same binary for everyone; or firewall/port closed → open the port, use an SSH tunnel or a tunnel service.</td></tr>
+          <tr><td>Earnings stay "pending"</td><td>pool payouts wait for the coinbase to mature (100 blocks) and to cross ~0.1 nHash — normal early on.</td></tr>
+          <tr><td>No new block for a while</td><td>at higher difficulty a block can take minutes — normal (5-min target). Variance is large with few miners.</td></tr>
+          <tr><td><code>newwallet</code> hangs</td><td>waiting for the password on stdin (typical over SSH) → set <code>COREHASH_PASS</code>.</td></tr>
+          <tr><td>"wrong passphrase"</td><td>wrong password for an encrypted wallet — the MAC detects it and refuses.</td></tr>
+          <tr><td>"immature coinbase spend"</td><td>you tried to spend coins mined &lt; 100 blocks ago — wait for maturity.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <footer>
+      nHash — a CPU-friendly cryptocurrency written from scratch in C++.
+      This manual covers day-to-day operation; the source code and <code>README.md</code> (the short
+      guide for friends) are in the project folder. Remember: the engine is done, but value comes from
+      people, not from code.
+    </footer>
+  </main>
+</div>
+
+<script>
+  // TOC active-section highlight (progressive; everything is visible at rest).
+  (function(){
+    var links = Array.prototype.slice.call(document.querySelectorAll('#tocList a'));
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    if (!('IntersectionObserver' in window)) return;
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){
+          links.forEach(function(l){ l.classList.remove('active'); });
+          var a = map[e.target.id]; if (a) a.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -75% 0px', threshold: 0 });
+    document.querySelectorAll('main section[id]').forEach(function(s){ obs.observe(s); });
+  })();
+</script>
